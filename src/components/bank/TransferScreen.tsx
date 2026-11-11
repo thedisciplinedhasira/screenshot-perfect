@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Calculator, ChevronLeft, ChevronRight, Eye, EyeOff, Plus, Trash2, UserRoundSearch, WalletCards, Landmark } from "lucide-react";
+import { Calculator, ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Plus, Trash2, UserRoundSearch, WalletCards, Landmark } from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { PhoneFrame } from "./PhoneFrame";
 import { ConfirmSheet, PinSheet } from "./TransferSheets";
-import { initials, makeTransactionId, isValidAccount, lookupAccountName, maskAccount, parseAmount } from "./transfer-utils";
+import { initials, isNameQuery, makeTransactionId, searchContacts, isValidAccount, lookupAccountName, maskAccount, parseAmount } from "./transfer-utils";
 
 type Contact = { name: string; account: string };
 
@@ -42,11 +42,27 @@ export function TransferScreen() {
   const [tab, setTab] = useState<Tab>("recent");
   const [recent, setRecent] = useState(RECENT);
   const [beneficiaries, setBeneficiaries] = useState(BENEFICIARIES);
-  const [step, setStep] = useState<"form" | "confirm" | "pin">("form");
+  const [step, setStep] = useState<"form" | "confirm" | "pin" | "processing">("form");
+  const [suggestOpen, setSuggestOpen] = useState(true);
   const [lookedUp, setLookedUp] = useState<string | null>(null);
 
   const list = tab === "recent" ? recent : beneficiaries;
   const setList = tab === "recent" ? setRecent : setBeneficiaries;
+  const nameQuery = isNameQuery(account);
+  const matches = useMemo(
+    () => (nameQuery ? searchContacts(account, [...recent, ...beneficiaries, ...DIRECTORY]) : []),
+    [nameQuery, account, recent, beneficiaries],
+  );
+  const pickContact = (c: Contact) => {
+    setAccount(c.account);
+    setSuggestOpen(true);
+  };
+  const onAccountChange = (raw: string) => {
+    setSuggestOpen(true);
+    // Letters mean the user is searching by name; otherwise keep digits only.
+    setAccount(isNameQuery(raw) ? raw.replace(/[^\p{L}\s'.-]/gu, "").slice(0, 40) : raw.replace(/\D/g, "").slice(0, 13));
+  };
+
   const resolvedName = useMemo(() => lookupAccountName(account, KNOWN_NAMES), [account]);
 
   // Short delay so the name appears like a real bank lookup.
@@ -60,7 +76,7 @@ export function TransferScreen() {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!isValidAccount(account)) {
-      toast.error("Enter a valid 13-digit account number");
+      toast.error(nameQuery ? "Pick an account from the list" : "Enter a valid 13-digit account number");
       return;
     }
     if (parseAmount(amount) <= 0) {
@@ -75,9 +91,10 @@ export function TransferScreen() {
   };
 
   const finish = () => {
-    setStep("form");
-    const now = new Date();
-    navigate({
+    setStep("processing");
+    setTimeout(() => {
+      const now = new Date();
+      navigate({
       to: "/transfer/success",
       search: {
         amount: parseAmount(amount),
@@ -87,7 +104,8 @@ export function TransferScreen() {
         txid: makeTransactionId(now),
         ts: now.getTime(),
       },
-    });
+      });
+    }, 1800);
   };
 
   return (
@@ -103,6 +121,18 @@ export function TransferScreen() {
             amount={parseAmount(amount)}
           />
           <PinSheet open={step === "pin"} onCancel={() => setStep("form")} onSubmit={finish} />
+          {step === "processing" && (
+            <div
+              role="status"
+              aria-label="Processing transfer"
+              className="absolute inset-0 z-50 grid place-items-center bg-ink/10 animate-in fade-in duration-200"
+            >
+              <div className="relative h-[86px] w-[86px]">
+                <div className="loader-ring absolute inset-0" />
+                <div className="loader-arc absolute inset-[-2px]" />
+              </div>
+            </div>
+          )}
         </>
       }
     >
@@ -145,7 +175,7 @@ export function TransferScreen() {
               <div className="mb-[8px] flex h-[42px] items-center rounded-[14px] bg-field/70 px-[10px] animate-in fade-in duration-200">
                 <span className="text-[14px] italic text-subtle">Name</span>
                 <span className="mx-[8px] h-[16px] w-px bg-border" />
-                <span className="min-w-0 truncate text-[15px] font-medium italic text-ink">
+                <span className="min-w-0 truncate text-[15px] font-medium italic text-brand">
                   {lookedUp ?? <span className="font-normal text-subtle">Checking…</span>}
                 </span>
               </div>
@@ -159,8 +189,9 @@ export function TransferScreen() {
               <Landmark className="h-[19px] w-[19px] shrink-0 text-brand" strokeWidth={1.6} />
               <input
                 value={account}
-                onChange={(e) => setAccount(e.target.value.replace(/\D/g, "").slice(0, 13))}
-                inputMode="numeric"
+                onChange={(e) => onAccountChange(e.target.value)}
+                inputMode="text"
+                autoComplete="off"
                 placeholder="Account Number"
                 aria-label="Account Number"
                 className="min-w-0 flex-1 bg-transparent text-[16px] font-medium text-ink outline-none placeholder:font-normal placeholder:text-subtle"
@@ -174,6 +205,51 @@ export function TransferScreen() {
                 <UserRoundSearch className="h-[18px] w-[18px]" strokeWidth={1.6} />
               </button>
             </label>
+
+            {nameQuery && (
+              <div className="mt-[6px] overflow-hidden rounded-[14px] bg-field shadow-tile animate-in fade-in slide-in-from-top-1 duration-150">
+                <button
+                  type="button"
+                  aria-expanded={suggestOpen}
+                  onClick={() => setSuggestOpen((v) => !v)}
+                  className="tap flex h-[34px] w-full items-center justify-between px-[12px] text-[12px] text-subtle"
+                >
+                  <span>
+                    {matches.length === 0
+                      ? "No saved account matches"
+                      : `${matches.length} matching account${matches.length > 1 ? "s" : ""}`}
+                  </span>
+                  {matches.length > 0 && (
+                    <ChevronDown
+                      className={cn("h-[15px] w-[15px] transition-transform", suggestOpen && "rotate-180")}
+                      strokeWidth={1.8}
+                    />
+                  )}
+                </button>
+                {suggestOpen && matches.length > 0 && (
+                  <ul className="max-h-[188px] overflow-y-auto border-t border-border/60">
+                    {matches.map((c) => (
+                      <li key={c.account}>
+                        <button
+                          type="button"
+                          onClick={() => pickContact(c)}
+                          className="tap flex w-full items-center gap-[10px] px-[12px] py-[7px] text-left hover:bg-panel"
+                        >
+                          <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-avatar text-[11px] font-medium text-brand">
+                            {initials(c.name)}
+                          </span>
+                          <span className="min-w-0 flex-1 leading-tight">
+                            <span className="block truncate text-[13px] text-ink">{c.name}</span>
+                            <span className="mt-[2px] block text-[11.5px] text-subtle">{maskAccount(c.account)}</span>
+                          </span>
+                          <ChevronRight className="h-[14px] w-[14px] shrink-0 text-subtle" strokeWidth={1.8} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <label className="mt-[8px] flex h-[58px] items-center gap-[14px] rounded-[16px] bg-field px-[14px] shadow-tile">
               <WalletCards className="h-[19px] w-[19px] shrink-0 text-brand" strokeWidth={1.6} />

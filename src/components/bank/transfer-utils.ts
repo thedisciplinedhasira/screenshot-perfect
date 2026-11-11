@@ -76,3 +76,25 @@ export const formatReceiptDate = (d: Date) => {
   const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
   return `${date} ${time}`;
 };
+
+/* --------------------------- Name search --------------------------- */
+
+/** True when the account field holds a name search rather than digits. */
+export const isNameQuery = (value: string) => /[a-z]/i.test(value);
+
+/**
+ * Finds saved accounts whose name has a word starting with the query
+ * ("h" or "hir" finds Hirut Negash Asfaw). Duplicate accounts are dropped.
+ */
+export const searchContacts = <T extends { name: string; account: string }>(query: string, contacts: T[]) => {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const seen = new Set<string>();
+  return contacts.filter((c) => {
+    if (seen.has(c.account)) return false;
+    const name = c.name.toLowerCase();
+    const hit = name.startsWith(q) || name.split(/\s+/).some((w) => w.startsWith(q));
+    if (hit) seen.add(c.account);
+    return hit;
+  });
+};

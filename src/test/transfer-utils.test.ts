@@ -40,3 +40,19 @@ describe("transfer charges and reference", () => {
     expect(makeTransactionId(new Date(2026, 10, 11, 17, 10), () => 0)).toBe("FT26315AAAAA");
   });
 });
+
+import { searchContacts } from "@/components/bank/transfer-utils";
+
+describe("account name search", () => {
+  const people = [
+    { name: "Hirut Negash Asfaw", account: "1000426548333" },
+    { name: "Mohammed Sirmolo Hussein", account: "1000234568174" },
+    { name: "Kenenisa Gelo Adula", account: "1000123450545" },
+  ];
+  it("typing 'h' lists everyone with a name starting with H", () => {
+    expect(searchContacts("h", people).map((p) => p.name)).toEqual(["Hirut Negash Asfaw", "Mohammed Sirmolo Hussein"]);
+  });
+  it("typing 'hirut' finds Hirut's account, case-insensitive", () => {
+    expect(searchContacts("HIRUT", people)).toEqual([people[0]]);
+  });
+});
