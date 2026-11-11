@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- The banking home screen lives in `src/components/bank/` (screen + custom SVG icons) and is rendered by `src/routes/index.tsx`; keep screen pieces there so routes stay thin.
+- All colors come from semantic tokens in `src/styles.css` (brand, surface, tile, vault, gold, send/receive tints); never hardcode color classes in components, so the palette can be retuned in one place.
+- The app renders inside a fixed-width phone frame (full width on mobile, centered frame on desktop) to match the mobile design 1:1.
