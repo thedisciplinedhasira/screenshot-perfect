@@ -29,3 +29,14 @@ describe("pin and account name", () => {
     expect(lookupAccountName("100042654833", {})).toBeNull();
   });
 });
+
+import { makeTransactionId, transferCharges } from "@/components/bank/transfer-utils";
+
+describe("transfer charges and reference", () => {
+  it("charges ETB 0.50 service, 15% VAT and 5% disaster recovery: 5.00 sends total 5.61", () => {
+    expect(transferCharges(5)).toEqual({ service: 0.5, vat: 0.08, disaster: 0.03, total: 5.61 });
+  });
+  it("builds a reference like FT26315xxxxx for Nov 11, 2026", () => {
+    expect(makeTransactionId(new Date(2026, 10, 11, 17, 10), () => 0)).toBe("FT26315AAAAA");
+  });
+});

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PhoneFrame } from "./PhoneFrame";
 import { ConfirmSheet, PinSheet } from "./TransferSheets";
-import { formatAmount, initials, isValidAccount, lookupAccountName, maskAccount, parseAmount } from "./transfer-utils";
+import { initials, makeTransactionId, isValidAccount, lookupAccountName, maskAccount, parseAmount } from "./transfer-utils";
 
 type Contact = { name: string; account: string };
 
@@ -76,10 +76,18 @@ export function TransferScreen() {
 
   const finish = () => {
     setStep("form");
-    toast.success(`${formatAmount(parseAmount(amount))} ETB sent`, {
-      description: `To ${lookedUp ?? maskAccount(account)}`,
+    const now = new Date();
+    navigate({
+      to: "/transfer/success",
+      search: {
+        amount: parseAmount(amount),
+        name: lookedUp ?? "",
+        account,
+        remark: remark.trim(),
+        txid: makeTransactionId(now),
+        ts: now.getTime(),
+      },
     });
-    navigate({ to: "/" });
   };
 
   return (
