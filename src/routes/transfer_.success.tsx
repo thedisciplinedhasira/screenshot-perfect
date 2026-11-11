@@ -6,12 +6,12 @@ type Search = { amount: number; name: string; account: string; remark: string; t
 
 export const Route = createFileRoute("/transfer_/success")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    amount: Number(s.amount) || 0,
-    name: typeof s.name === "string" ? s.name : "",
-    account: String(s.account ?? ""),
-    remark: typeof s.remark === "string" ? s.remark : "",
-    txid: String(s.txid ?? ""),
-    ts: Number(s.ts) || 0,
+    amount: Number(s["amount"]) || 0,
+    name: typeof s["name"] === "string" ? s["name"] : "",
+    account: String(s["account"] ?? ""),
+    remark: typeof s["remark"] === "string" ? s["remark"] : "",
+    txid: String(s["txid"] ?? ""),
+    ts: Number(s["ts"]) || 0,
   }),
   head: () => ({
     meta: [
