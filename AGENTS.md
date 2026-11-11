@@ -30,6 +30,6 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Project rules
-- Bank screens live in `src/components/bank/` (screens, shared `PhoneFrame`, custom SVG icons, pure helpers in `transfer-utils.ts`) and are rendered by thin route files (`/` home, `/transfer` CBE Transfer); keep routes thin so screens stay reusable.
+- Bank screens live in `src/components/bank/` (screens, shared `PhoneFrame`, custom SVG icons, pure helpers in `transfer-utils.ts`, `BottomSheet` that stays inside the frame) and are rendered by thin route files (`/` home, `/transfer` CBE Transfer); keep routes thin so screens stay reusable.
 - All colors come from semantic tokens in `src/styles.css` (brand, surface, tile, vault, gold, send/receive tints); never hardcode color classes in components, so the palette can be retuned in one place.
 - The app renders inside a fixed-width phone frame (full width on mobile, centered frame on desktop) to match the mobile design 1:1.

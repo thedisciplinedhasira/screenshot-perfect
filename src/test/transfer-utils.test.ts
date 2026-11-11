@@ -14,3 +14,18 @@ describe("transfer rules", () => {
     expect(initials("Kenenisa Gelo Adula")).toBe("KG");
   });
 });
+
+import { lookupAccountName, pushPinDigit } from "@/components/bank/transfer-utils";
+
+describe("pin and account name", () => {
+  it("stops accepting digits after 6", () => {
+    expect(pushPinDigit("123456", "7")).toBe("123456");
+    expect(pushPinDigit("12345", "6")).toBe("123456");
+  });
+  it("shows a saved name for a known account and none for an incomplete number", () => {
+    expect(lookupAccountName("1000426548333", { "1000426548333": "Hirut Negash Asfaw" })).toBe(
+      "Hirut Negash Asfaw",
+    );
+    expect(lookupAccountName("100042654833", {})).toBeNull();
+  });
+});

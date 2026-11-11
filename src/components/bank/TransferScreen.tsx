@@ -1,12 +1,12 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Calculator, ChevronLeft, ChevronRight, Eye, EyeOff, Plus, Trash2, UserRoundSearch, WalletCards, Landmark } from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PhoneFrame } from "./PhoneFrame";
-import { formatAmount, initials, isValidAccount, maskAccount, parseAmount } from "./transfer-utils";
+import { ConfirmSheet, PinSheet } from "./TransferSheets";
+import { formatAmount, initials, isValidAccount, lookupAccountName, maskAccount, parseAmount } from "./transfer-utils";
 
 type Contact = { name: string; account: string };
 
@@ -23,6 +23,13 @@ const BENEFICIARIES: Contact[] = [
   { name: "Dawit Alemu Girma", account: "1000789017730" },
 ];
 
+/** Other account holders the demo lookup knows by name. */
+const DIRECTORY: Contact[] = [{ name: "Hirut Negash Asfaw", account: "1000426548333" }];
+
+const KNOWN_NAMES: Record<string, string> = Object.fromEntries(
+  [...RECENT, ...BENEFICIARIES, ...DIRECTORY].map((c) => [c.account, c.name]),
+);
+
 type Tab = "recent" | "beneficiaries";
 
 export function TransferScreen() {
@@ -35,11 +42,20 @@ export function TransferScreen() {
   const [tab, setTab] = useState<Tab>("recent");
   const [recent, setRecent] = useState(RECENT);
   const [beneficiaries, setBeneficiaries] = useState(BENEFICIARIES);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [step, setStep] = useState<"form" | "confirm" | "pin">("form");
+  const [lookedUp, setLookedUp] = useState<string | null>(null);
 
   const list = tab === "recent" ? recent : beneficiaries;
   const setList = tab === "recent" ? setRecent : setBeneficiaries;
-  const recipient = [...RECENT, ...BENEFICIARIES].find((c) => c.account === account);
+  const resolvedName = useMemo(() => lookupAccountName(account, KNOWN_NAMES), [account]);
+
+  // Short delay so the name appears like a real bank lookup.
+  useEffect(() => {
+    setLookedUp(null);
+    if (!resolvedName) return;
+    const t = setTimeout(() => setLookedUp(resolvedName), 450);
+    return () => clearTimeout(t);
+  }, [resolvedName]);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -51,19 +67,37 @@ export function TransferScreen() {
       toast.error("Enter an amount greater than 0");
       return;
     }
-    setConfirmOpen(true);
+    if (!lookedUp) {
+      toast("Checking account name…");
+      return;
+    }
+    setStep("confirm");
   };
 
-  const confirm = () => {
-    setConfirmOpen(false);
-    toast.success(`ETB ${formatAmount(parseAmount(amount))} sent`, {
-      description: `To ${recipient?.name ?? maskAccount(account)}`,
+  const finish = () => {
+    setStep("form");
+    toast.success(`${formatAmount(parseAmount(amount))} ETB sent`, {
+      description: `To ${lookedUp ?? maskAccount(account)}`,
     });
     navigate({ to: "/" });
   };
 
   return (
-    <PhoneFrame>
+    <PhoneFrame
+      overlay={
+        <>
+          <ConfirmSheet
+            open={step === "confirm"}
+            onCancel={() => setStep("form")}
+            onContinue={() => setStep("pin")}
+            toName={lookedUp ?? ""}
+            toAccount={account}
+            amount={parseAmount(amount)}
+          />
+          <PinSheet open={step === "pin"} onCancel={() => setStep("form")} onSubmit={finish} />
+        </>
+      }
+    >
       <div className="flex min-h-full flex-col bg-brand">
         <header className="flex items-center gap-[18px] px-[20px] pb-[26px] pt-[44px]">
           <Link
@@ -99,7 +133,21 @@ export function TransferScreen() {
           </section>
 
           <form onSubmit={submit} className="mt-[10px]">
-            <label className="flex h-[58px] items-center gap-[14px] rounded-[16px] border-[1.5px] border-brand/70 bg-field px-[14px] focus-within:border-brand">
+            {isValidAccount(account) && (
+              <div className="mb-[8px] flex h-[42px] items-center rounded-[14px] bg-field/70 px-[10px] animate-in fade-in duration-200">
+                <span className="text-[14px] italic text-subtle">Name</span>
+                <span className="mx-[8px] h-[16px] w-px bg-border" />
+                <span className="min-w-0 truncate text-[15px] font-medium italic text-ink">
+                  {lookedUp ?? <span className="font-normal text-subtle">Checking…</span>}
+                </span>
+              </div>
+            )}
+            <label
+              className={cn(
+                "flex h-[58px] items-center gap-[14px] rounded-[16px] border-[1.5px] bg-field px-[14px] focus-within:border-brand",
+                account ? "border-transparent shadow-tile" : "border-brand/70",
+              )}
+            >
               <Landmark className="h-[19px] w-[19px] shrink-0 text-brand" strokeWidth={1.6} />
               <input
                 value={account}
@@ -107,7 +155,7 @@ export function TransferScreen() {
                 inputMode="numeric"
                 placeholder="Account Number"
                 aria-label="Account Number"
-                className="min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-subtle"
+                className="min-w-0 flex-1 bg-transparent text-[16px] font-medium text-ink outline-none placeholder:font-normal placeholder:text-subtle"
               />
               <button
                 type="button"
@@ -118,7 +166,6 @@ export function TransferScreen() {
                 <UserRoundSearch className="h-[18px] w-[18px]" strokeWidth={1.6} />
               </button>
             </label>
-            {recipient && <p className="mt-[5px] px-[4px] text-[11px] text-brand">{recipient.name}</p>}
 
             <label className="mt-[8px] flex h-[58px] items-center gap-[14px] rounded-[16px] bg-field px-[14px] shadow-tile">
               <WalletCards className="h-[19px] w-[19px] shrink-0 text-brand" strokeWidth={1.6} />
@@ -234,33 +281,6 @@ export function TransferScreen() {
         </div>
       </div>
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="max-w-[360px] rounded-[20px] bg-field">
-          <DialogHeader>
-            <DialogTitle className="text-brand">Confirm transfer</DialogTitle>
-            <DialogDescription>Please review the details before sending.</DialogDescription>
-          </DialogHeader>
-          <dl className="space-y-[8px] text-[14px]">
-            {[
-              ["From", "Saving Account 1********4516"],
-              ["To", recipient ? `${recipient.name} · ${maskAccount(account)}` : maskAccount(account)],
-              ["Amount", `ETB ${formatAmount(parseAmount(amount))}`],
-              ["Remark", remark.trim() || "MB transfer"],
-            ].map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-4">
-                <dt className="text-subtle">{k}</dt>
-                <dd className="text-right text-ink">{v}</dd>
-              </div>
-            ))}
-          </dl>
-          <button
-            onClick={confirm}
-            className="tap mt-[8px] h-[44px] w-full rounded-full bg-brand-bright text-[15px] font-medium text-vault-foreground"
-          >
-            Send money
-          </button>
-        </DialogContent>
-      </Dialog>
     </PhoneFrame>
   );
 }
