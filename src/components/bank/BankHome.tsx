@@ -15,10 +15,12 @@ import {
   ChartLine,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 
 import mapBg from "@/assets/card-world-map.jpg";
 import emblem from "@/assets/cbe-emblem.png";
 import { cn } from "@/lib/utils";
+import { PhoneFrame } from "./PhoneFrame";
 import {
   BankFilledIcon,
   BankOutlineIcon,
@@ -228,21 +230,29 @@ function TransferRow() {
   ];
   return (
     <div className="mt-[24px] grid grid-cols-2 gap-[8px] pl-[25px] pr-[21px]">
-      {items.map(({ title, sub, icon: I, tint, color }) => (
-        <button
-          key={title}
-          onClick={() => notify(title)}
-          className="tap flex h-[69px] min-w-0 items-center rounded-[22px] bg-tile pl-[15px] text-left shadow-tile"
-        >
-          <span className={cn("grid h-[31px] w-[31px] shrink-0 place-items-center rounded-full", tint)}>
-            <I className={cn("h-[15px] w-[15px]", color)} strokeWidth={1.6} />
-          </span>
-          <span className="ml-[8px] min-w-0 leading-none">
-            <span className="block truncate text-[14px] text-brand">{title}</span>
-            <span className="mt-[3px] block text-[9px] text-subtle">{sub}</span>
-          </span>
-        </button>
-      ))}
+      {items.map(({ title, sub, icon: I, tint, color }) => {
+        const body = (
+          <>
+            <span className={cn("grid h-[31px] w-[31px] shrink-0 place-items-center rounded-full", tint)}>
+              <I className={cn("h-[15px] w-[15px]", color)} strokeWidth={1.6} />
+            </span>
+            <span className="ml-[8px] min-w-0 leading-none">
+              <span className="block truncate text-[14px] text-brand">{title}</span>
+              <span className="mt-[3px] block text-[9px] text-subtle">{sub}</span>
+            </span>
+          </>
+        );
+        const cls = "tap flex h-[69px] min-w-0 items-center rounded-[22px] bg-tile pl-[15px] text-left shadow-tile";
+        return title === "CBE Transfer" ? (
+          <Link key={title} to="/transfer" className={cls}>
+            {body}
+          </Link>
+        ) : (
+          <button key={title} onClick={() => notify(title)} className={cls}>
+            {body}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -329,25 +339,26 @@ function BottomNav() {
 
 export function BankHome() {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-ink sm:py-4">
-      <main className="relative h-dvh w-full max-w-[402px] overflow-hidden bg-surface sm:h-[min(874px,calc(100dvh-2rem))] sm:rounded-[44px] sm:shadow-2xl">
-        <div className="no-scrollbar h-full overflow-y-auto">
-          <div className="relative">
-            <div className="absolute inset-x-0 top-0 h-[300px] bg-brand" />
-            <div className="absolute inset-x-0 top-[233px] h-[120px] rounded-tl-[46px] bg-surface" />
-            <div className="relative">
-              <Header />
-              <AccountCard />
-              <div className="mx-auto mt-[10px] h-[8px] w-[29px] rounded-full bg-indicator" />
-              <QuickActions />
-              <TransferRow />
-              <ServiceGrid />
-            </div>
-          </div>
+    <PhoneFrame
+      overlay={
+        <>
+          <ScanQr />
+          <BottomNav />
+        </>
+      }
+    >
+      <div className="relative">
+        <div className="absolute inset-x-0 top-0 h-[300px] bg-brand" />
+        <div className="absolute inset-x-0 top-[233px] h-[120px] rounded-tl-[46px] bg-surface" />
+        <div className="relative">
+          <Header />
+          <AccountCard />
+          <div className="mx-auto mt-[10px] h-[8px] w-[29px] rounded-full bg-indicator" />
+          <QuickActions />
+          <TransferRow />
+          <ServiceGrid />
         </div>
-        <ScanQr />
-        <BottomNav />
-      </main>
-    </div>
+      </div>
+    </PhoneFrame>
   );
 }

@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BankHome } from "@/components/bank/BankHome";
-import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,10 +23,5 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return (
-    <>
-      <BankHome />
-      <Toaster position="top-center" />
-    </>
-  );
+  return <BankHome />;
 }
