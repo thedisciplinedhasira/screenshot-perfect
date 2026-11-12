@@ -5,7 +5,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 
-import emblem from "@/assets/cbe-emblem.png";
+import emblemAsset from "@/assets/cbe-logo.png.asset.json";
+const emblem = emblemAsset.url;
 import { PhoneFrame } from "./PhoneFrame";
 import { ACCOUNT_HOLDER } from "./TransferSheets";
 import { formatAmount, formatReceiptDate, transferCharges } from "./transfer-utils";
@@ -86,7 +87,7 @@ export function SuccessScreen({ receipt }: { receipt: Receipt }) {
           <button
             aria-label="Screenshot"
             onClick={() => save(screenRef.current, `CBE-${txid}.png`, "Screenshot saved")}
-            className="tap grid h-[34px] w-[34px] place-items-center rounded-full bg-brand-soft"
+            className="tap bob grid h-[34px] w-[34px] place-items-center rounded-full bg-brand-soft shadow-fab"
           >
             <ScanLine className="h-[18px] w-[18px] text-vault-foreground" strokeWidth={1.8} />
           </button>
@@ -94,13 +95,13 @@ export function SuccessScreen({ receipt }: { receipt: Receipt }) {
 
         {/* Panel */}
         <div className="relative mt-[48px] flex flex-1 flex-col rounded-t-[30px] bg-field px-[16px] pb-[18px]">
-          <div className="absolute left-1/2 top-[-56px] grid h-[92px] w-[92px] -translate-x-1/2 place-items-center rounded-full border-[6px] border-field bg-brand-bright">
+          <div className="absolute left-1/2 top-[-56px] grid h-[92px] w-[92px] -translate-x-1/2 place-items-center rounded-full border-[6px] border-field bg-brand-bright shadow-fab">
             <Check className="h-[46px] w-[46px] text-vault-foreground" strokeWidth={3} />
           </div>
 
           <p className="mt-[50px] text-center text-[12.5px] text-ink">Transaction Completed Successfully!</p>
 
-          <section ref={summaryRef} className="relative mt-[18px] rounded-[16px] bg-panel px-[14px] pb-[16px] pt-[14px]">
+          <section ref={summaryRef} className="relative mt-[18px] rounded-[16px] bg-panel px-[14px] pb-[16px] pt-[14px] shadow-card">
             <p className="text-[11px] text-subtle">Transaction Summary</p>
             <p className="mt-[10px] text-[13px] leading-[20px] text-ink">
               ETB <b className="font-semibold">{formatAmount(amount)}</b> has been debited from{" "}
@@ -130,7 +131,7 @@ export function SuccessScreen({ receipt }: { receipt: Receipt }) {
                 key={stampKey}
                 className="pointer-events-none absolute left-1/2 top-[34%] -translate-x-1/2 -translate-y-1/2"
               >
-                <div className="paid-stamp rounded-[10px] border-[2px] border-field/80 bg-brand-bright/85 px-[30px] py-[8px] text-[26px] font-semibold tracking-[0.18em] text-vault-foreground shadow-fab">
+                <div className="paid-stamp rounded-[10px] border-[2px] border-field bg-brand-bright px-[30px] py-[8px] text-[26px] font-semibold tracking-[0.18em] text-vault-foreground shadow-fab">
                   PAID
                 </div>
               </div>
@@ -158,7 +159,7 @@ export function SuccessScreen({ receipt }: { receipt: Receipt }) {
           </div>
           <Link
             to="/"
-            className="tap mt-[12px] grid h-[40px] place-items-center rounded-full border border-border bg-panel text-[13.5px] text-ink"
+            className="tap mt-[12px] grid h-[40px] place-items-center rounded-full border border-border bg-panel text-[13.5px] text-ink shadow-tile"
           >
             Close
           </Link>

@@ -18,7 +18,8 @@ import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
 import mapBg from "@/assets/card-world-map.jpg";
-import emblem from "@/assets/cbe-emblem.png";
+import emblemAsset from "@/assets/cbe-logo.png.asset.json";
+const emblem = emblemAsset.url;
 import { cn } from "@/lib/utils";
 import { PhoneFrame } from "./PhoneFrame";
 import {
@@ -92,7 +93,7 @@ function AccountCard() {
 
   return (
     <section
-      className="relative ml-[33px] mr-[29px] mt-[16px] h-[204px] overflow-hidden rounded-[24px] bg-vault"
+      className="relative ml-[33px] mr-[29px] mt-[16px] h-[204px] overflow-hidden rounded-[24px] bg-vault shadow-card"
       aria-label="Saving account"
     >
       <img

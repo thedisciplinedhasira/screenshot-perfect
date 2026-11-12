@@ -150,7 +150,7 @@ export function TransferScreen() {
 
         <div className="flex-1 rounded-t-[26px] bg-panel px-[17px] pb-[28px] pt-[20px]">
           {/* From account */}
-          <section className="rounded-[16px] bg-slate-card px-[15px] py-[12px] leading-tight text-vault-foreground">
+          <section className="rounded-[16px] bg-slate-card px-[15px] py-[12px] shadow-card leading-tight text-vault-foreground">
             <p className="text-[13px]">From Account</p>
             <p className="mt-[5px] text-[13px]">
               Saving Account <span className="font-semibold">1********4516</span>

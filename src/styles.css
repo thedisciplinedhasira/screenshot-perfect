@@ -94,7 +94,8 @@
   --avatar: oklch(0.9 0.035 320);
   --loader-glow: oklch(0.72 0.19 325);
 
-  --shadow-tile: 0 1px 2px oklch(0.247 0.068 315.1 / 0.04);
+  --shadow-tile: 0 1px 2px oklch(0.247 0.068 315.1 / 0.06), 0 3px 8px -2px oklch(0.247 0.068 315.1 / 0.1);
+  --shadow-card: 0 2px 4px oklch(0.247 0.068 315.1 / 0.08), 0 8px 18px -6px oklch(0.247 0.068 315.1 / 0.22);
   --shadow-fab: 0 6px 16px -6px oklch(0.387 0.14 304.7 / 0.55);
 
   --background: var(--surface);
@@ -135,6 +136,9 @@
 
 @utility shadow-tile {
   box-shadow: var(--shadow-tile);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
 }
 @utility shadow-fab {
   box-shadow: var(--shadow-fab);
@@ -195,4 +199,18 @@
   mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
   filter: blur(2px);
   animation: loader-spin 1s linear infinite;
+}
+
+/* Gentle up-and-down bob for the success screen's top-right button */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.06);
+  }
+}
+@utility bob {
+  animation: bob 1.4s ease-in-out infinite;
 }
