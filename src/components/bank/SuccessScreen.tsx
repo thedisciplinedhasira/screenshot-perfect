@@ -1,12 +1,12 @@
 import { useRef, useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, ScanLine, Share2, ShieldCheck, ReceiptText } from "lucide-react";
+import { ScanLine, Share2, ShieldCheck, ReceiptText } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 
-import emblemAsset from "@/assets/cbe-logo.png.asset.json";
-const emblem = emblemAsset.url;
+// served from /public so it loads locally and on Lovable
+const emblem = "/favicon.png";
 import { PhoneFrame } from "./PhoneFrame";
 import { ACCOUNT_HOLDER } from "./TransferSheets";
 import { formatAmount, formatReceiptDate, transferCharges } from "./transfer-utils";
@@ -87,7 +87,7 @@ export function SuccessScreen({ receipt }: { receipt: Receipt }) {
           <button
             aria-label="Screenshot"
             onClick={() => save(screenRef.current, `CBE-${txid}.png`, "Screenshot saved")}
-            className="tap bob grid h-[34px] w-[34px] place-items-center rounded-full bg-brand-soft shadow-fab"
+            className="tap grid h-[34px] w-[34px] place-items-center rounded-full bg-brand-soft shadow-fab"
           >
             <ScanLine className="h-[18px] w-[18px] text-vault-foreground" strokeWidth={1.8} />
           </button>
@@ -95,8 +95,18 @@ export function SuccessScreen({ receipt }: { receipt: Receipt }) {
 
         {/* Panel */}
         <div className="relative mt-[48px] flex flex-1 flex-col rounded-t-[30px] bg-field px-[16px] pb-[18px]">
-          <div className="absolute left-1/2 top-[-56px] grid h-[92px] w-[92px] -translate-x-1/2 place-items-center rounded-full border-[6px] border-field bg-brand-bright shadow-fab">
-            <Check className="h-[46px] w-[46px] text-vault-foreground" strokeWidth={3} />
+          <div className="absolute left-1/2 top-[-56px] -translate-x-1/2">
+            <div className="bob grid h-[92px] w-[92px] place-items-center rounded-full border-[6px] border-field bg-brand shadow-fab">
+              <svg viewBox="0 0 24 24" fill="none" className="h-[44px] w-[44px]" aria-hidden>
+                <path
+                  d="M5 12.8 10 17.5 19.2 7"
+                  stroke="white"
+                  strokeWidth={3.2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           </div>
 
           <p className="mt-[50px] text-center text-[12.5px] text-ink">Transaction Completed Successfully!</p>
